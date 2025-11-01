@@ -23,6 +23,9 @@ def main():
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("test", test))
     app.add_handler(CommandHandler("echo", echo))
+    app.add_handler(CommandHandler("img_to_pdf", img_to_pdf))
+
+    # app.add_handler(MessageHandler(filters.PHOTO, img_to_pdf))
 
     app.add_handler(MessageHandler(filters.PHOTO, remove_bg))
 

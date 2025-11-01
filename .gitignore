@@ -8,7 +8,9 @@ wheels/
 
 .env
 all_code.txt
+all_user_code_1.txt
 all_user_code.txt
 combine.sh
+ruff.toml
 # Virtual environments
 .venv
