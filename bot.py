@@ -6,55 +6,54 @@ from telegram.ext import ContextTypes
 from bg_rem import rem_image
 from image_to_pdf import images_to_pdf, single_image_to_pdf
 
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Hello! Util Bot here")
-
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        """Commnads list:
-/start - just a hello
-/help - list commands
-/test - testing, might be broken
-/image_to_pdf - converts single image to a pdf file"""
-    )
+# async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     await update.message.reply_text("Hello! Util Bot here")
 
 
-async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("This is a test")
+# async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     await update.message.reply_text(
+#         """Commnads list:
+# /start - just a hello
+# /help - list commands
+# /test - testing, might be broken
+# /image_to_pdf - converts single image to a pdf file"""
+#     )
 
 
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Access arguments via context.args
-    if context.args:
-        message = " ".join(context.args)
-        await update.message.reply_text(f"You said: {message}")
-    else:
-        await update.message.reply_text("Usage: /echo <message>")
+# async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     await update.message.reply_text("This is a test")
 
 
-async def remove_bg(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Removing background from your image...")
+# async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     # Access arguments via context.args
+#     if context.args:
+#         message = " ".join(context.args)
+#         await update.message.reply_text(f"You said: {message}")
+#     else:
+#         await update.message.reply_text("Usage: /echo <message>")
 
-    try:
-        picture = update.message.photo[-1]
-        picture_id = await context.bot.get_file(picture.file_id)
 
-        picture_bytes = io.BytesIO()
-        await picture_id.download_to_memory(picture_bytes)
+# async def remove_bg(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     await update.message.reply_text("Removing background from your image...")
 
-        output = rem_image(picture_bytes.getvalue())
+#     try:
+#         picture = update.message.photo[-1]
+#         picture_id = await context.bot.get_file(picture.file_id)
 
-        await context.bot.send_document(
-            chat_id=update.message.chat_id,
-            document=output,
-            filename="no_bg.png",
-            caption="Completed!",
-        )
+#         picture_bytes = io.BytesIO()
+#         await picture_id.download_to_memory(picture_bytes)
 
-    except Exception as e:
-        await update.message.reply_text(f"❌ Error: {str(e)}")
+#         output = rem_image(picture_bytes.getvalue())
+
+#         await context.bot.send_document(
+#             chat_id=update.message.chat_id,
+#             document=output,
+#             filename="no_bg.png",
+#             caption="Completed!",
+#         )
+
+#     except Exception as e:
+#         await update.message.reply_text(f"❌ Error: {str(e)}")
 
 
 async def img_to_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -79,29 +78,29 @@ async def img_to_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # For testing, later will be integrated with othre functions or features
 
 
-# async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     await update.message.reply_text(
-#         "👋 Hello! Util Bot here\n\nUse /start_pdf to create PDF from multiple images"
-#     )
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "👋 Hello! Util Bot here\n\nUse /start_pdf to create PDF from multiple images"
+    )
 
 
-# async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     await update.message.reply_text(
-#         """📖 Commands:
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        """📖 Commands:
 
-# 📄 PDF Creation:
-# /start_pdf - Begin collecting images for PDF
-# /finish - Create PDF from collected images
-# /cancel - Cancel and clear images
+📄 PDF Creation:
+/start_pdf - Begin collecting images for PDF
+/finish - Create PDF from collected images
+/cancel - Cancel and clear images
 
-# ℹ️ General:
-# /start - Welcome
-# /help - This message"""
-#     )
+ℹ️ General:
+/start - Welcome
+/help - This message"""
+    )
 
 
-# async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     await update.message.reply_text("✅ Bot is working!")
+async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("✅ Bot is working!")
 
 
 async def start_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):

@@ -4,8 +4,8 @@ import pymupdf  # PyMuPDF library
 from PIL import Image
 
 # Constant A4 dimentions for pdf
-WIDTH_A4 = 595
-HEIGHT_A4 = 842
+WIDTH_A4 = 1238
+HEIGHT_A4 = 1754
 
 
 def single_image_to_pdf(image_bytes):
@@ -49,15 +49,15 @@ def images_to_pdf(image_bytes_list):
 
     # Process each image
     for img_bytes in image_bytes_list:
-        # Create A4 with white blank background
-        page = pdf_doc.new_page(width=WIDTH_A4, height=HEIGHT_A4)
-
         # Open image from bytes
         img_doc = Image.open(io.BytesIO(img_bytes))
         img_width = img_doc.width
         img_height = img_doc.height
         # img_doc = pymupdf.open(stream=img_bytes, filetype="png")
         # dimentions = img_doc[0].rect
+
+        # Create A4 with white blank background
+        page = pdf_doc.new_page(width=WIDTH_A4, height=HEIGHT_A4)
 
         # # Convert image to PDF format
         # pdf_bytes = img_doc.convert_to_pdf()
