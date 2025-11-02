@@ -30,7 +30,7 @@ async def img_to_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "👋 Hello! Util Bot here\n\nUse /start_pdf to create PDF from multiple images"
+        "👋 Hello! my favourite freeloader!\n\nUse /start_pdf to create PDF from a single or multiple images"
     )
 
 
@@ -64,7 +64,7 @@ async def start_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "📸 Send me images one by one.\n"
         "I'll keep them in the order you send them.\n\n"
-        "When done, use /finish to create PDF\n"
+        "When done, use the LAST /finish to create PDF\n"
         "Use /cancel to cancel"
     )
 
