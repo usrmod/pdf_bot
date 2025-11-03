@@ -451,14 +451,6 @@ text
 
 This project is for portfolio and demonstration purposes.
 
-## 👨‍💻 Author & Contact
-
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile)
-- Email: your.email@domain.com
-- Portfolio: [your-website.com](https://your-website.com)
-
 ## 🙏 Acknowledgments
 
 - **python-telegram-bot**: Comprehensive and well-documented bot framework
