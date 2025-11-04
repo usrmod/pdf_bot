@@ -126,12 +126,17 @@ async def finish_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_document(
             document=pdf_output,
             filename=f"combined_{count}_pages.pdf",
-            caption=f"""
+            #             caption=f"""
+            #             ✅ PDF created with {count} page(s)!
+            # Wish to make another pdf?
+            # Use /start_pdf again""",
+        )
+
+        await update.message.reply_text(f"""
             ✅ PDF created with {count} page(s)!
 
 Wish to make another pdf?
-Use /start_pdf again""",
-        )
+Use /start_pdf again""")
 
         # Clear collected images
         context.user_data["collecting_images"] = False
