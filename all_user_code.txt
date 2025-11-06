@@ -1,0 +1,375 @@
+#----------------------------------------------------------------
+# bot.py
+import io
+
+from telegram import Update
+from telegram.ext import ContextTypes
+
+from image_to_pdf import images_to_pdf  # , single_image_to_pdf
+
+
+async def img_to_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("converting your single image to a pdf")
+
+    try:
+        picture = update.message.photo[-1]
+        picture_id = await context.bot.get_file(picture.file_id)
+
+        picture_bytes = io.BytesIO()
+        await picture_id.download_to_memory(picture_bytes)
+
+        pdf_output = single_image_to_pdf(picture_bytes.getvalue())
+
+        await update.message.reply_document(
+            document=pdf_output, filename="from_image.pdf", caption="Here is your pdf"
+        )
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
+
+
+# For testing, later will be integrated with othre functions or features
+
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "👋 Hello! my favourite freeloader!\n\nUse /start_pdf to create PDF from a single or multiple images"
+    )
+
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        """📖 Commands:
+
+📄 PDF Creation:
+/start_pdf - Begin collecting images for PDF
+/finish - Create PDF from collected images
+/cancel - Cancel and clear images
+
+ℹ️ General:
+/start - Welcome
+/help - This message"""
+    )
+
+
+async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("✅ Bot is working!")
+
+
+async def start_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Start collecting images for PDF creation
+    """
+    # Initialize empty list to store image bytes
+    context.user_data["collecting_images"] = True
+    context.user_data["image_bytes_list"] = []
+
+    await update.message.reply_text(
+        "📸 Send me images one by one.\n"
+        "I'll keep them in the order you send them.\n\n"
+        "When done, use the LAST /finish to create PDF\n"
+        "Use /cancel to cancel"
+    )
+
+
+async def collect_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Collect photos sent by user
+    """
+    # Check if user is collecting images
+    if not context.user_data.get("collecting_images"):
+        await update.message.reply_text(
+            "⚠️ Use /start_pdf first to begin collecting images"
+        )
+        return
+
+    try:
+        # Get photo
+        photo = update.message.photo[-1]
+        photo_file = await context.bot.get_file(photo.file_id)
+
+        # Download to memory
+        photo_bytes = io.BytesIO()
+        await photo_file.download_to_memory(photo_bytes)
+
+        # Store bytes in list (maintains order)
+        context.user_data["image_bytes_list"].append(photo_bytes.getvalue())
+
+        # Confirm to user
+        count = len(context.user_data["image_bytes_list"])
+        await update.message.reply_text(
+            f"✅ Image {count} added!\nSend more or use /finish"
+        )
+
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error: {str(e)}")
+
+
+async def finish_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Create PDF from all collected images
+    """
+    # Get collected images
+    image_bytes_list = context.user_data.get("image_bytes_list", [])
+
+    if not image_bytes_list:
+        await update.message.reply_text(
+            "❌ No images collected!\nUse /start_pdf to begin"
+        )
+        return
+
+    count = len(image_bytes_list)
+    await update.message.reply_text(f"📄 Creating PDF from {count} image(s)...")
+
+    try:
+        # Create PDF from all images
+        pdf_output = images_to_pdf(image_bytes_list)
+
+        # Send PDF to user
+        await update.message.reply_document(
+            document=pdf_output,
+            filename=f"combined_{count}_pages.pdf",
+            #             caption=f"""
+            #             ✅ PDF created with {count} page(s)!
+            # Wish to make another pdf?
+            # Use /start_pdf again""",
+        )
+
+        await update.message.reply_text(f"""
+            ✅ PDF created with {count} page(s)!
+
+Wish to make another pdf?
+Use /start_pdf again""")
+
+        # Clear collected images
+        context.user_data["collecting_images"] = False
+        context.user_data["image_bytes_list"] = []
+
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error creating PDF: {str(e)}")
+
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Cancel image collection
+    """
+    # Clear stored data
+    context.user_data["collecting_images"] = False
+    context.user_data["image_bytes_list"] = []
+
+    await update.message.reply_text(
+        "❌ Cancelled. All images cleared.\nUse /start_pdf to begin again"
+    )
+
+#----------------------------------------------------------------
+
+#----------------------------------------------------------------
+# config.py
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+#----------------------------------------------------------------
+
+#----------------------------------------------------------------
+# image_to_pdf.py
+import io
+
+import pymupdf  # PyMuPDF library
+from PIL import Image
+
+# Constant A4 dimentions for pdf
+WIDTH_A4 = 1238
+HEIGHT_A4 = 1754
+
+
+# def single_image_to_pdf(image_bytes):
+#     new_pdf_doc = pymupdf.open()
+
+#     image_from_bytes = pymupdf.open(stream=image_bytes, filetype="png")
+
+#     image_dimentions = image_from_bytes[0].rect
+
+#     pdf_bytes = image_from_bytes.convert_to_pdf()
+#     image_from_bytes.close()
+
+#     image_pdf = pymupdf.open("pdf", pdf_bytes)
+
+#     page = new_pdf_doc.new_page(
+#         width=image_dimentions.width, height=image_dimentions.height
+#     )
+#     page.show_pdf_page(image_dimentions, image_pdf, 0)
+
+#     # Save to BytesIO
+#     output = io.BytesIO()
+#     output.write(new_pdf_doc.tobytes())
+#     output.seek(0)
+
+#     new_pdf_doc.close()
+#     return output
+
+
+def images_to_pdf(image_bytes_list):
+    """
+    Convert multiple images to single multi-page PDF
+
+    Args:
+        image_bytes_list: List of image bytes (in order)
+
+    Returns:
+        BytesIO object containing PDF
+    """
+    # Create new PDF document
+    pdf_doc = pymupdf.open()
+
+    # Process each image
+    for img_bytes in image_bytes_list:
+        # Open image from bytes
+        img_doc = Image.open(io.BytesIO(img_bytes))
+        img_width = img_doc.width
+        img_height = img_doc.height
+        # img_doc = pymupdf.open(stream=img_bytes, filetype="png")
+        # dimentions = img_doc[0].rect
+
+        # Create A4 with white blank background
+        page = pdf_doc.new_page(width=WIDTH_A4, height=HEIGHT_A4)
+
+        # # Convert image to PDF format
+        # pdf_bytes = img_doc.convert_to_pdf()
+        # img_doc.close()
+
+        # # Add as new page to main document
+        # img_pdf = pymupdf.open("pdf", pdf_bytes)
+        # page.show_pdf_page(dimentions, img_pdf, 0)
+
+        target_rect = fit_image_to_page(img_width, img_height, WIDTH_A4, HEIGHT_A4)
+
+        # Insert image at calculated position
+        # page.show_pdf_page(target_rect, img_pdf, 0)
+        page.insert_image(target_rect, stream=img_bytes)
+
+    # Export to BytesIO
+    output = io.BytesIO()
+    output.write(pdf_doc.tobytes())
+    output.seek(0)
+
+    pdf_doc.close()
+    return output
+
+
+def fit_image_to_page(img_width, img_height, page_width, page_height, margin=0):
+    """
+    Calculate rectangle to fit image in page while maintaining aspect ratio
+
+    Args:
+        img_rect: Original image rectangle (has .width and .height)
+        page_width: Target page width
+        page_height: Target page height
+        margin: Margin around image (in points)
+
+    Returns:
+        pymupdf.Rect with calculated position and size
+    """
+    # Available space (page size minus margins)
+    available_width = page_width - (2 * margin)
+    available_height = page_height - (2 * margin)
+
+    # # Original image dimensions
+    # img_width = img_rect.width
+    # img_height = img_rect.height
+
+    # Calculate scaling ratios
+    width_ratio = available_width / img_width
+    height_ratio = available_height / img_height
+
+    # Use smaller ratio to ensure image fits entirely
+    scale = min(width_ratio, height_ratio)
+
+    # Calculate new dimensions
+    new_width = img_width * scale
+    new_height = img_height * scale
+
+    # Center the image on page
+    x0 = (page_width - new_width) / 2
+    y0 = (page_height - new_height) / 2
+    x1 = x0 + new_width
+    y1 = y0 + new_height
+
+    # Return rectangle with calculated position
+    return pymupdf.Rect(x0, y0, x1, y1)
+
+#----------------------------------------------------------------
+
+#----------------------------------------------------------------
+# main.py
+import logging
+from logging.handlers import TimedRotatingFileHandler  # , RotatingFileHandler
+
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
+
+from bot import *
+from config import BOT_TOKEN
+
+# One log per day, file changes at midnight with the date in the file name
+handler = TimedRotatingFileHandler(
+    "bot.log",
+    when="midnight",
+    interval=1,
+    backupCount=7,  # Keep 7 days
+)
+handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+)
+
+logging.basicConfig(level=logging.INFO, handlers=[handler])
+# logging.basicConfig(level=logging.INFO, handlers=[handler, logging.StreamHandler()]) # for console as well
+
+
+def main():
+    app = Application.builder().token(BOT_TOKEN).build()
+
+    # Basic commands
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("test", test))
+
+    # PDF workflow commands
+    app.add_handler(CommandHandler("start_pdf", start_pdf))
+    app.add_handler(CommandHandler("finish", finish_pdf))
+    app.add_handler(CommandHandler("cancel", cancel))
+
+    # Photo handler - collects images
+    app.add_handler(MessageHandler(filters.PHOTO, collect_photo))
+
+    print("🤖 Bot running...")
+
+    app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
+
+#----------------------------------------------------------------
+
+#----------------------------------------------------------------
+# pyproject.toml
+[project]
+name = "telgram-my-util-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.120.0",
+    "onnxruntime>=1.23.2",
+    "pillow>=12.0.0",
+    "pymupdf>=1.26.5",
+    "python-dotenv>=1.2.1",
+    "python-telegram-bot>=22.5",
+    "rembg>=2.0.67",
+]
+
+#----------------------------------------------------------------
+
